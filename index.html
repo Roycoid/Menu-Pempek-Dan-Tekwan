@@ -262,7 +262,8 @@
             `*DETAIL PESANAN:*\n` +
             `${orderList}\n` +
             `*TOTAL BELANJA: Rp ${total.toLocaleString('id-ID')}*\n\n` +
-            
+            `(Mohon info nomor rekening untuk pembayarannya ya)`;
+
         window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(textMessage)}`, '_blank');
         closeModal();
     }
