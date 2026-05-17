@@ -3,273 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Menu | Pempek Ibu Ita</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Admin Dashboard | Pempek Ibu Ita</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <style>
-        :root {
-            --primary: #d97706; --dark: #0f172a; --bg: #f8fafc; --white: #ffffff;
-            --text: #334155; --muted: #64748b; --border: #e2e8f0; --wa: #25D366;
-        }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 100px; }
+        body { background-color: #f8fafc; color: #334155; padding: 20px; }
         
-        /* Header */
-        .header { background: var(--white); padding: 15px 20px; text-align: center; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .header h1 { font-size: 18px; color: var(--dark); font-weight: 800; }
-        .header p { font-size: 12px; color: var(--muted); }
+        .header { background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 20px; color: #0f172a; }
+        .header .badge { background: #d97706; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        .header .badge-mitra { background: #059669; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        .header .badge-pengeluaran { background: #ef4444; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 600; }
 
-        /* --- Banner Promosi Kemitraan --- */
-        .promo-reseller-banner {
-            display: flex; align-items: center; gap: 15px; 
-            background: linear-gradient(135deg, #fffbeb, #fef3c7);
-            margin: 15px; padding: 15px; border-radius: 12px; 
-            text-decoration: none; color: var(--dark);
-            border: 1px solid #fde68a; 
-            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.15); 
-            transition: transform 0.2s;
-        }
-        .promo-reseller-banner:active { transform: scale(0.98); }
-        .promo-icon { 
-            background: var(--primary); color: white; width: 45px; height: 45px; 
-            border-radius: 50%; display: flex; align-items: center; 
-            justify-content: center; font-size: 20px; flex-shrink: 0; 
-        }
-        .promo-text { flex: 1; }
-        .promo-text strong { font-size: 14px; font-weight: 800; color: #b45309; display: block; margin-bottom: 2px; }
-        .promo-text p { font-size: 11px; color: #92400e; line-height: 1.4; }
-        .promo-reseller-banner .chevron { color: #d97706; font-size: 16px; }
-
-        /* Kategori */
-        .category-title { padding: 20px 20px 10px; font-size: 16px; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 8px; }
-        .category-title i { color: var(--primary); }
-
-        /* Menu List */
-        .menu-container { padding: 0 15px; display: flex; flex-direction: column; gap: 12px; }
-        .menu-item { background: var(--white); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .menu-info { flex: 1; }
-        .menu-name { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
-        .menu-desc { font-size: 12px; color: var(--muted); margin-bottom: 8px; line-height: 1.4; }
-        .menu-price { font-size: 14px; font-weight: 800; color: var(--primary); }
+        /* Tabel & Container Styling */
+        .table-container { background: #ffffff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; margin-bottom: 40px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 15px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        th { background-color: #f1f5f9; color: #475569; font-weight: 600; white-space: nowrap; }
+        tr:hover { background-color: #f8fafc; }
         
-        /* Qty Control */
-        .qty-control { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 5px; border-radius: 20px; border: 1px solid var(--border); }
-        .qty-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--white); color: var(--dark); font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .qty-btn:active { transform: scale(0.95); }
-        .qty-value { font-size: 14px; font-weight: 700; width: 20px; text-align: center; }
+        .tipe-pesanan { font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 600; display: inline-block; }
+        .tipe-antar { background-color: #dbeafe; color: #1e3a8a; }
+        .tipe-bungkus { background-color: #f3e8ff; color: #6b21a8; }
+        .tipe-makan { background-color: #fce7f3; color: #9d174d; }
+        .tipe-paket { background-color: #d1fae5; color: #065f46; font-weight: 700; }
+        .tipe-pengeluaran { background-color: #fee2e2; color: #b91c1c; font-weight: 700; }
 
-        /* Sticky Bottom Cart */
-        .cart-bottom { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--white); padding: 15px 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; z-index: 100; border-top: 1px solid var(--border); }
-        .cart-total h4 { font-size: 12px; color: var(--muted); font-weight: 600; }
-        .cart-total h2 { font-size: 20px; color: var(--dark); font-weight: 800; }
-        .btn-checkout { background: var(--wa); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: opacity 0.3s; }
-        .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .total-harga { font-weight: 700; color: #059669; }
+        .minus-harga { font-weight: 700; color: #ef4444; }
+        .menu-list { list-style-type: none; font-size: 13px; color: #64748b; }
+        .menu-list li { margin-bottom: 3px; }
+        .loading { text-align: center; padding: 50px; color: #64748b; }
 
-        /* Modal Info Pelanggan */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; justify-content: center; align-items: flex-end; }
-        .modal.active { display: flex; animation: fadeIn 0.3s; }
-        .modal-content { background: var(--white); width: 100%; max-width: 500px; padding: 25px; border-radius: 20px 20px 0 0; animation: slideUp 0.3s; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Form Styling untuk Admin */
+        .form-box { padding: 25px; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--dark); }
-        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; }
-        .form-control:focus { border-color: var(--primary); }
-        .close-modal { float: right; cursor: pointer; font-size: 20px; color: var(--muted); }
-
-        @media(min-width: 600px) {
-            body { background: #e2e8f0; display: flex; justify-content: center; }
-            .mobile-wrapper { background: var(--bg); width: 100%; max-width: 480px; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-            .cart-bottom { max-width: 480px; left: 50%; transform: translateX(-50%); }
-            .modal { align-items: center; }
-            .modal-content { border-radius: 20px; }
-        }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #0f172a; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; }
+        .form-control:focus { border-color: #d97706; }
+        .btn-simpan { background: #ef4444; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-simpan:hover { background: #dc2626; }
+        .btn-simpan:disabled { background: #fca5a5; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
-<div class="mobile-wrapper">
     <div class="header">
-        <h1><i class="fa-solid fa-bowl-food" style="color:var(--primary);"></i> Pempek & Tekwan Ibu Ita</h1>
-        <p>Fresh! Halal! Enak! - Order Cepat via WhatsApp</p>
+        <h1><i class="fa-solid fa-money-bill-transfer" style="color:#ef4444;"></i> Catat Belanja & Pengeluaran</h1>
     </div>
-
-    <a href="https://roycoid.github.io/pempek-dan-tekwan-ibu-ita/" class="promo-reseller-banner" target="_blank">
-        <div class="promo-icon"><i class="fa-solid fa-handshake"></i></div>
-        <div class="promo-text">
-            <strong>Buka Peluang Usaha! 🚀</strong>
-            <p>Suka pempeknya? Yuk gabung jadi Mitra/Reseller resmi dan dapatkan harga khusus. Klik di sini!</p>
+    <div class="table-container form-box">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div class="form-group">
+                <label>Nama Barang / Keterangan</label>
+                <input type="text" id="namaPengeluaran" class="form-control" placeholder="Cth: Ikan Tenggiri 5kg / Listrik">
+            </div>
+            <div class="form-group">
+                <label>Kategori</label>
+                <select id="kategoriPengeluaran" class="form-control">
+                    <option value="Bahan Baku">🐟 Bahan Baku (Ikan, Sagu, Bumbu)</option>
+                    <option value="Kemasan">📦 Kemasan (Plastik, Dus, Mika)</option>
+                    <option value="Operasional">🛵 Operasional (Listrik, Bensin, Gaji)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Total Harga (Rp)</label>
+                <input type="number" id="nominalPengeluaran" class="form-control" placeholder="Cth: 150000">
+            </div>
         </div>
-        <i class="fa-solid fa-chevron-right chevron"></i>
-    </a>
-
-    <div class="category-title"><i class="fa-solid fa-fish"></i> Pempek Satuan (Rp 3.000)</div>
-    <div class="menu-container" id="menu-satuan"></div>
-
-    <div class="category-title"><i class="fa-solid fa-egg"></i> Pempek Premium</div>
-    <div class="menu-container" id="menu-premium"></div>
-
-    <div class="category-title"><i class="fa-solid fa-mug-hot"></i> Menu Tekwan</div>
-    <div class="menu-container" id="menu-tekwan"></div>
-
-    <div style="height: 40px;"></div>
-
-    <div class="cart-bottom">
-        <div class="cart-total">
-            <h4>Total Pesanan:</h4>
-            <h2 id="total-price">Rp 0</h2>
-        </div>
-        <button class="btn-checkout" id="btn-checkout" disabled onclick="openModal()">
-            <i class="fa-brands fa-whatsapp"></i> Lanjut Order
+        <button id="btnSimpanPengeluaran" class="btn-simpan" onclick="simpanPengeluaran()">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan Data Pengeluaran
         </button>
     </div>
-</div>
 
-<div class="modal" id="orderModal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></span>
-        <h3 style="margin-bottom: 20px; color: var(--dark);">Detail Pengiriman</h3>
-        
-        <div class="form-group">
-            <label>Nama Pemesan</label>
-            <input type="text" id="custName" class="form-control" placeholder="Contoh: Budi">
-        </div>
-        <div class="form-group">
-            <label>Alamat Lengkap / Patokan</label>
-            <textarea id="custAddress" class="form-control" rows="3" placeholder="Contoh: Jl. Merdeka No.10 (Pagar Hitam)"></textarea>
-        </div>
-        <div class="form-group">
-            <label>Catatan Opsional</label>
-            <input type="text" id="custNote" class="form-control" placeholder="Contoh: Cukonya dipisah / Banyakin pedas">
-        </div>
-        
-        <button class="btn-checkout" style="width: 100%; justify-content: center; margin-top: 10px;" onclick="kirimKeWA()">
-            Kirim Pesanan Sekarang <i class="fa-solid fa-paper-plane"></i>
-        </button>
+    <div class="header">
+        <h1><i class="fa-solid fa-receipt" style="color:#ef4444;"></i> Riwayat Pengeluaran</h1>
+        <div class="badge-pengeluaran" id="totalPengeluaranBadge">Rp 0</div>
     </div>
-</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Waktu Input</th>
+                    <th>Nama Barang / Keterangan</th>
+                    <th>Kategori</th>
+                    <th>Nominal Pengeluaran</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="tableBodyPengeluaran">
+                <tr><td colspan="5" class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="header" style="align-items: flex-start;">
+        <div>
+            <h1><i class="fa-solid fa-chart-line" style="color:#d97706;"></i> Data Pesanan (Ruko & Online)</h1>
+            <a href="index.html" target="_blank" style="display:inline-block; margin-top:10px; background:#0ea5e9; color:white; padding:8px 15px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:600;"><i class="fa-solid fa-cash-register"></i> Buka Kasir Utama</a>
+        </div>
+        <div class="badge" id="totalOrders">0 Pesanan</div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Waktu Order</th>
+                    <th>Nama Pelanggan</th>
+                    <th>Tipe & Detail Lokasi</th>
+                    <th>Daftar Pesanan</th>
+                    <th>Pembayaran</th>
+                    <th>Total Belanja</th>
+                </tr>
+            </thead>
+            <tbody id="tableBodyOrders">
+                <tr><td colspan="6" class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="header">
+        <h1><i class="fa-solid fa-handshake" style="color:#059669;"></i> Data Pendaftaran Mitra / Reseller</h1>
+        <div class="badge-mitra" id="totalReseller">0 Pendaftar</div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Waktu Daftar</th>
+                    <th>Nama Calon Mitra</th>
+                    <th>Domisili / Alamat</th>
+                    <th>Pilihan Paket</th>
+                </tr>
+            </thead>
+            <tbody id="tableBodyReseller">
+                <tr><td colspan="4" class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
 
 <script>
-    // Data Menu berdasarkan Brosur
-    const menuData = [
-        { id: 'p_telur', name: 'Pempek Telur Kecil', desc: 'Isian telur kocok', price: 3000, category: 'satuan' },
-        { id: 'p_lenjer', name: 'Pempek Lenjer', desc: 'Bentuk panjang original', price: 3000, category: 'satuan' },
-        { id: 'p_adaan', name: 'Pempek Adaan', desc: 'Bentuk bulat gurih', price: 3000, category: 'satuan' },
-        { id: 'p_keriting', name: 'Pempek Keriting', desc: 'Tekstur keriting renyah', price: 3000, category: 'satuan' },
-        { id: 'p_kulit', name: 'Pempek Kulit', desc: 'Renyah dari kulit ikan', price: 3000, category: 'satuan' },
-        
-        { id: 'p_kapal', name: 'Pempek Kapal Selam', desc: 'Ukuran besar isi telur utuh', price: 18000, category: 'premium' },
-        
-        { id: 't_biasa', name: 'Tekwan', desc: 'Sup bola ikan kuah kaldu udang', price: 12000, category: 'tekwan' },
-        { id: 't_indomie', name: 'Tekwan Indomie', desc: 'Paduan tekwan lezat dengan mi instan', price: 17000, category: 'tekwan' },
-    ];
+    const firebaseConfig = {
+        apiKey: "AIzaSyCZONKYX2sXBaCsIvZU6Nmd9r7b6KYgxhk",
+        authDomain: "pempek-dan-tekwan-ibu-ita.firebaseapp.com",
+        projectId: "pempek-dan-tekwan-ibu-ita",
+        storageBucket: "pempek-dan-tekwan-ibu-ita.firebasestorage.app",
+        messagingSenderId: "680562252929",
+        appId: "1:680562252929:web:09de957059d0241b77c180"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    let cart = {};
+    // ==========================================
+    // SCRIPT 1: PENGELUARAN BAHAN BAKU (BARU)
+    // ==========================================
+    function simpanPengeluaran() {
+        const nama = document.getElementById('namaPengeluaran').value;
+        const kategori = document.getElementById('kategoriPengeluaran').value;
+        const nominal = parseInt(document.getElementById('nominalPengeluaran').value);
 
-    // Render Menu
-    function renderMenu() {
-        ['satuan', 'premium', 'tekwan'].forEach(cat => {
-            const container = document.getElementById(`menu-${cat}`);
-            const items = menuData.filter(m => m.category === cat);
-            
-            items.forEach(item => {
-                cart[item.id] = 0; // Set awal qty = 0
-                
-                const div = document.createElement('div');
-                div.className = 'menu-item';
-                div.innerHTML = `
-                    <div class="menu-info">
-                        <div class="menu-name">${item.name}</div>
-                        <div class="menu-desc">${item.desc}</div>
-                        <div class="menu-price">Rp ${item.price.toLocaleString('id-ID')}</div>
-                    </div>
-                    <div class="qty-control">
-                        <button class="qty-btn" onclick="updateQty('${item.id}', -1)"><i class="fa-solid fa-minus"></i></button>
-                        <div class="qty-value" id="qty-${item.id}">0</div>
-                        <button class="qty-btn" onclick="updateQty('${item.id}', 1)"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        });
-    }
-
-    // Update Quantity
-    function updateQty(id, change) {
-        if(cart[id] + change >= 0) {
-            cart[id] += change;
-            document.getElementById(`qty-${id}`).innerText = cart[id];
-            calculateTotal();
-        }
-    }
-
-    // Kalkulasi Total
-    function calculateTotal() {
-        let total = 0;
-        let totalItems = 0;
-        
-        menuData.forEach(item => {
-            total += cart[item.id] * item.price;
-            totalItems += cart[item.id];
-        });
-
-        document.getElementById('total-price').innerText = `Rp ${total.toLocaleString('id-ID')}`;
-        
-        const btn = document.getElementById('btn-checkout');
-        if(totalItems > 0) {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Pesan (${totalItems} Item)`;
-        } else {
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-brands fa-whatsapp"></i> Lanjut Order`;
-        }
-    }
-
-    // Modal Logic
-    function openModal() { document.getElementById('orderModal').classList.add('active'); }
-    function closeModal() { document.getElementById('orderModal').classList.remove('active'); }
-
-    // Proses Kirim ke WA
-    function kirimKeWA() {
-        const name = document.getElementById('custName').value;
-        const address = document.getElementById('custAddress').value;
-        const note = document.getElementById('custNote').value;
-
-        if(!name || !address) {
-            alert('Mohon isi Nama dan Alamat pengiriman!');
+        if(!nama || !nominal || isNaN(nominal)) {
+            alert("Mohon isi Nama Barang dan Nominal Harga yang valid!");
             return;
         }
 
-        let orderList = "";
-        let total = 0;
+        const btn = document.getElementById('btnSimpanPengeluaran');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+        btn.disabled = true;
 
-        menuData.forEach(item => {
-            if(cart[item.id] > 0) {
-                let subtotal = cart[item.id] * item.price;
-                orderList += `▪️ ${cart[item.id]}x ${item.name} (Rp ${subtotal.toLocaleString('id-ID')})\n`;
-                total += subtotal;
-            }
+        db.collection("pengeluaran").add({
+            namaBarang: nama,
+            kategori: kategori,
+            nominal: nominal,
+            tanggalInput: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            alert("Pengeluaran berhasil dicatat!");
+            document.getElementById('namaPengeluaran').value = '';
+            document.getElementById('nominalPengeluaran').value = '';
+        }).catch((error) => {
+            console.error("Error: ", error);
+            alert("Gagal menyimpan data.");
+        }).finally(() => {
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Data Pengeluaran';
+            btn.disabled = false;
         });
-
-        // Nomer WA sesuai brosur baru
-        const waNumber = "6289508573323"; 
-
-        const textMessage = `*HALO IBU ITA, SAYA MAU PESAN Eceran:* 🐟\n\n` +
-            `*DATA PEMESAN:*\n` +
-            `👤 Nama: ${name}\n` +
-            `📍 Alamat: ${address}\n` +
-            `📝 Catatan: ${note || '-'}\n\n` +
-            `*DETAIL PESANAN:*\n` +
-            `${orderList}\n` +
-            `*TOTAL BELANJA: Rp ${total.toLocaleString('id-ID')}*\n\n` +
-            `(Mohon info nomor rekening untuk pembayarannya ya)`;
-
-        window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(textMessage)}`, '_blank');
-        closeModal();
     }
 
-    // Init
-    renderMenu();
+    const tableBodyPengeluaran = document.getElementById('tableBodyPengeluaran');
+    const totalPengeluaranBadge = document.getElementById('totalPengeluaranBadge');
+
+    db.collection("pengeluaran").orderBy("tanggalInput", "desc").onSnapshot((querySnapshot) => {
+        tableBodyPengeluaran.innerHTML = ""; 
+        let totalNominal = 0;
+
+        if(querySnapshot.empty) {
+            tableBodyPengeluaran.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px;">Belum ada data pengeluaran.</td></tr>`;
+        } else {
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const docId = doc.id;
+                totalNominal += data.nominal || 0;
+                
+                let waktuInput = "Waktu tidak diketahui";
+                if(data.tanggalInput) {
+                    waktuInput = data.tanggalInput.toDate().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${waktuInput}</td>
+                    <td><strong>${data.namaBarang}</strong></td>
+                    <td><span class="tipe-pesanan tipe-pengeluaran">${data.kategori}</span></td>
+                    <td class="minus-harga">- Rp ${(data.nominal || 0).toLocaleString('id-ID')}</td>
+                    <td><button onclick="hapusPengeluaran('${docId}')" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="Hapus"><i class="fa-solid fa-trash"></i></button></td>
+                `;
+                tableBodyPengeluaran.appendChild(tr);
+            });
+        }
+        totalPengeluaranBadge.innerText = `Total: Rp ${totalNominal.toLocaleString('id-ID')}`;
+    });
+
+    function hapusPengeluaran(id) {
+        if(confirm("Apakah Anda yakin ingin menghapus data pengeluaran ini?")) {
+            db.collection("pengeluaran").doc(id).delete();
+        }
+    }
+
+    // ==========================================
+    // SCRIPT 2 & 3: PESANAN & MITRA (TETAP SAMA)
+    // ==========================================
+    const tableBodyOrders = document.getElementById('tableBodyOrders');
+    const totalOrdersBadge = document.getElementById('totalOrders');
+
+    db.collection("orders").orderBy("tanggalOrder", "desc").onSnapshot((querySnapshot) => {
+        tableBodyOrders.innerHTML = ""; let counterOrders = 0;
+        if(querySnapshot.empty) {
+            tableBodyOrders.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px;">Belum ada data pesanan.</td></tr>`;
+        } else {
+            querySnapshot.forEach((doc) => {
+                counterOrders++; const data = doc.data();
+                let waktuOrder = data.tanggalOrder ? data.tanggalOrder.toDate().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : "-";
+                let tipeClass = ""; let detailLokasiHtml = "";
+
+                if (data.tipePesanan.includes("Antar")) {
+                    tipeClass = "tipe-antar"; detailLokasiHtml = `<div style="margin-top:5px; font-size:12px; color:#64748b;">📍 Alamat: ${data.alamatPengiriman}</div>`;
+                } else if (data.tipePesanan.includes("Tempat")) {
+                    tipeClass = "tipe-makan"; detailLokasiHtml = `<div style="margin-top:5px; font-size:12px; color:#c2185b; font-weight:600;">🪑 ${data.alamatPengiriman || 'Meja tidak diisi'}</div>`;
+                } else {
+                    tipeClass = "tipe-bungkus"; detailLokasiHtml = `<div style="margin-top:5px; font-size:12px; color:#6b21a8;">🛍️ Dibungkus (Takeaway)</div>`;
+                }
+
+                let menuHtml = '<ul class="menu-list">';
+                if(data.daftarPesanan) data.daftarPesanan.forEach(item => { menuHtml += `<li>${item.qty}x ${item.namaMenu}</li>`; });
+                menuHtml += '</ul>';
+
+                let catatanHtml = data.catatanTambahan && data.catatanTambahan !== '-' ? `<div style="font-size:11px; color:#b45309; margin-top:4px;">📝_Catatan: "${data.catatanTambahan}"</div>` : '';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${waktuOrder}</td><td><strong>${data.namaPelanggan}</strong>${catatanHtml}</td><td><span class="tipe-pesanan ${tipeClass}">${data.tipePesanan}</span>${detailLokasiHtml}</td><td>${menuHtml}</td><td>${data.metodePembayaran}</td><td class="total-harga">Rp ${data.totalBelanja.toLocaleString('id-ID')}</td>`;
+                tableBodyOrders.appendChild(tr);
+            });
+        }
+        totalOrdersBadge.innerText = `${counterOrders} Pesanan`;
+    });
+
+    const tableBodyReseller = document.getElementById('tableBodyReseller');
+    const totalResellerBadge = document.getElementById('totalReseller');
+    db.collection("calon_mitra").onSnapshot((querySnapshot) => {
+        tableBodyReseller.innerHTML = ""; let counterReseller = 0;
+        if(querySnapshot.empty) {
+            tableBodyReseller.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Belum ada data pendaftar mitra.</td></tr>`;
+        } else {
+            querySnapshot.forEach((doc) => {
+                counterReseller++; const data = doc.data();
+                let waktuDaftar = (data.waktuDaftar && typeof data.waktuDaftar.toDate === 'function') ? data.waktuDaftar.toDate().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : (data.waktuDaftar || "-");
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${waktuDaftar}</td><td><strong>${data.nama || '-'}</strong></td><td>${data.domisili || '-'}</td><td><span class="tipe-pesanan tipe-paket">${data.paket || '-'}</span></td>`;
+                tableBodyReseller.appendChild(tr);
+            });
+        }
+        totalResellerBadge.innerText = `${counterReseller} Pendaftar`;
+    });
 </script>
 
 </body>
